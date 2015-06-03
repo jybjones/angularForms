@@ -1,45 +1,47 @@
 doctype html
-html(lang="en-US", ng-app ="angularForms")
+html(lang="en-US", ng-app="angularAddresses")
   head
     meta(charset="utf-8")
     meta(http-equiv="X-UA-Compatible", content="IE=edge")
     meta(name="viewport", content="width=device-width, initial-scale=1")
-    link(rel="stylesheet", href="css/main.css")
-    title angularForms
-  body(ng-controller="AddressBookController as addressBookController")
+    title Angular Addresses
+    link(rel="stylesheet" href="lib/build.css")
+    link(rel="stylesheet" href="css/main.css")
+  body(ng-controller="Main as main")
     .container
-      form(name="newAddressForm", ng-submit="newAddressForm.$valid && addressBookController.addNewAddress()", novalidate)
-        label First Name
-        input(type="text", placeholder="John", ng-model="addressBookController.newPerson.firstName", required)
-        label Last Name
-        input(type="text", placeholder="Doe", ng-model="addressBookController.newPerson.lastName", required)
-        label Phone
-        input(type="tel", placeholder="615-555-5555", ng-model="addressBookController.newPerson.number", required)
-        label Twitter
-        input(type="text", placeholder="@abc123", ng-model="addressBookController.newPerson.twitter", required)
-        input(type="submit", value="Add Person to Address Book", ng-disabled="newAddressForm.$invalid")
+      h1 AngularAddresses
+      h2 Search
+      input(placeholder="Search", ng-model="query")
+      h2 Addresses
       table
         thead
           tr
-            th First Name
-            th Last Name
-            th Number
+            th
+            th Name
+            th Phone
             th Twitter
-            th Delete?
         tbody
-          tr(ng-repeat="person in addressBookController.people | orderBy:'name' | filter:query")
+          tr(ng-repeat="person in main.people | orderBy:'name' | filter:query")
             td
-              {{person.firstName | uppercase}}
+              button.btn.btn-xs.btn-danger(ng-click="main.removeAddress(person)") X
             td
-              {{person.lastName | uppercase}}
-            td: a(href="tel:{{person.number}}")
-              {{person.number}}
+              {{person.name | uppercase}}
+            td: a(href="tel:{{person.phone}}")
+              {{person.phone}}
             td: a(href="http://twitter.com/{{person.twitter}}", target="_blank")
               {{person.twitter}}
-            td
-              button(ng-click="addressBookController.removeAddress(person)") X
-
-      input.search(placeholder="Search", ng-model="query")
+      h2 New Address
+      form(name="newAddressForm", ng-submit="newAddressForm.$valid && main.addNewAddress()", novalidate)
+        .form-group(ng-class="{'has-success': newAddressForm.n.$dirty && main.newPerson.name, 'has-error': newAddressForm.n.$dirty && !main.newPerson.name}")
+          label.control-label Name
+          input.form-control(name="n", type="text", placeholder="John", ng-model="main.newPerson.name", required)
+        .form-group(ng-class="{'has-success': newAddressForm.p.$dirty && main.newPerson.phone, 'has-error': newAddressForm.p.$dirty && !main.newPerson.phone}")
+          label.control-label Phone
+          input.form-control(name="p", type="tel", placeholder="615-555-5555", ng-model="main.newPerson.phone", required)
+        .form-group(ng-class="{'has-success': newAddressForm.t.$dirty && main.newPerson.twitter, 'has-error': newAddressForm.t.$dirty && !main.newPerson.twitter}")
+          label.control-label Twitter
+          input.form-control(name="t", type="text", placeholder="@abc123", ng-model="main.newPerson.twitter", required)
+        input.btn.btn-primary(type="submit", value="Add Person to Address Book", ng-disabled="newAddressForm.$invalid")
 
     script(src="lib/build.js")
     script(src="js/main.js")
