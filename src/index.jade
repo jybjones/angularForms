@@ -21,15 +21,13 @@ html(lang="en-US", ng-app ="angularForms")
       table
         thead
           tr
-            th.empty
             th First Name
             th Last Name
             th Number
             th Twitter
+            th Delete?
         tbody
           tr(ng-repeat="person in addressBookController.people | orderBy:'name' | filter:query")
-            td
-              button(ng-click="addressBookController.removeAddress(person)") X
             td
               {{person.firstName | uppercase}}
             td
@@ -38,8 +36,10 @@ html(lang="en-US", ng-app ="angularForms")
               {{person.number}}
             td: a(href="http://twitter.com/{{person.twitter}}", target="_blank")
               {{person.twitter}}
+            td
+              button(ng-click="addressBookController.removeAddress(person)") X
 
-      input(placeholder="Search", ng-model="query")
+      input.search(placeholder="Search", ng-model="query")
 
     script(src="lib/build.js")
     script(src="js/main.js")
