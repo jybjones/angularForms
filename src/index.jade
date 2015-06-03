@@ -1,12 +1,45 @@
 doctype html
-html(lang="en-US")
+html(lang="en-US", ng-app ="angularForms")
   head
     meta(charset="utf-8")
     meta(http-equiv="X-UA-Compatible", content="IE=edge")
     meta(name="viewport", content="width=device-width, initial-scale=1")
+    link(rel="stylesheet", href="css/main.css")
     title angularForms
-  body
+  body(ng-controller="AddressBookController as addressBookController")
     .container
+      form(name="newAddressForm", ng-submit="newAddressForm.$valid && addressBookController.addNewAddress()", novalidate)
+        label First Name
+        input(type="text", placeholder="John", ng-model="addressBookController.newPerson.firstName", required)
+        label Last Name
+        input(type="text", placeholder="Doe", ng-model="addressBookController.newPerson.lastName", required)
+        label Phone
+        input(type="tel", placeholder="615-555-5555", ng-model="addressBookController.newPerson.number", required)
+        label Twitter
+        input(type="text", placeholder="@abc123", ng-model="addressBookController.newPerson.twitter", required)
+        input(type="submit", value="Add Person to Address Book", ng-disabled="newAddressForm.$invalid")
+      table
+        thead
+          tr
+            th.empty
+            th First Name
+            th Last Name
+            th Number
+            th Twitter
+        tbody
+          tr(ng-repeat="person in addressBookController.people | orderBy:'name' | filter:query")
+            td
+              button(ng-click="addressBookController.removeAddress(person)") X
+            td
+              {{person.firstName | uppercase}}
+            td
+              {{person.lastName | uppercase}}
+            td: a(href="tel:{{person.number}}")
+              {{person.number}}
+            td: a(href="http://twitter.com/{{person.twitter}}", target="_blank")
+              {{person.twitter}}
+
+      input(placeholder="Search", ng-model="query")
 
     script(src="lib/build.js")
     script(src="js/main.js")

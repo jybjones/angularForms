@@ -1,0 +1,14 @@
+table {
+  border-collapse: collapse;
+
+}
+
+th,tbody {
+  background-color: lightblue;
+  padding: 25px;
+  font-size: 18px;
+
+}
+
+th.empty { background-color: transparent;}
+
