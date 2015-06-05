@@ -1,0 +1,37 @@
+[
+    {
+        "name": "Ben",
+        "twitter": "@ben123",
+        "phone": "+1 615 234 5678",
+        "photo": "http://i.imgur.com/fsw9I8V.gif"
+
+    },
+    {
+        "name": "Dan",
+        "twitter": "@dandan",
+        "phone": "(615) 234-5678",
+        "photo": "http://i.imgur.com/uTONfVS.jpg"
+
+    },
+    {
+        "name": "Elsa",
+        "twitter": "@letitgo",
+        "phone": "615-234-5678",
+        "photo": "http://i.imgur.com/Vo0pllf.jpg"
+
+    },
+    {
+        "name": "Amanda",
+        "twitter": "@princessamanda",
+        "phone": "1 615 234 5678",
+        "photo": "http://i.imgur.com/yLCfE5l.jpg"
+
+    },
+    {
+        "name": "Charity",
+        "twitter": "@nonprofit",
+        "phone": "615.234.5678",
+        "photo": "http://i.imgur.com/AAuJNDl.jpg"
+
+    }
+]
