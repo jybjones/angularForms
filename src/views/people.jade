@@ -3,8 +3,12 @@ h1 Angular Addresses Using Firebase
 h2 Search
 input(placeholder="Search", ng-model="query")
 h2 Addresses
-div(ng-include="'views/table.html'")
-.btn.btn-primary(data-toggle="modal", data-target="#modal") New Address
+  .btn.btn-primary(data-toggle="modal", data-target="#modal") New Address
+  .gallery
+    .person(ng-repeat="(id, person) in main.people | objToArr | orderBy:'name' | filter:query")
+      a(href="/#people/{{person._id}}")
+        img(ng-src="{{person.photo}}")
+
 div(ng-include="'views/modal.html'")
 
 

@@ -17,6 +17,11 @@ angular
         controller: 'Main',
         controllerAs: 'main'
       })
+      .when('/people/:id', {
+        templateUrl: 'views/person.html',
+        controller: 'PersonController',
+        controllerAs: 'person'
+      })
       .otherwise({
         templateUrl: 'views/404.html'
       });
@@ -44,6 +49,17 @@ angular
         })
         .join('');
     }
+  })
+
+  .controller('PersonController', function ($http, $routeParams) {
+    var vm = this;
+    var id = $routeParams.id;
+
+    $http
+      .get('`https://viewangularapp.firebaseio.com/people/${id}.json`)
+      .success(function (data) {
+        vm.data = data;
+      });
   })
 
   .controller('Main', function ($http) {
