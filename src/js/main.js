@@ -1,7 +1,9 @@
 angular
-  .module('angularAddresses', ['ngRoute'])
+  .module('angularForms', ['ngRoute'])
 
-  .config(function ($routeProvider) {
+  .constant('API_URL', 'https://viewangularapp.firebaseio.com')
+
+   .config(function ($routeProvider) {
     $routeProvider
       .when('/', {
         templateUrl: 'views/landing.html'
@@ -12,19 +14,48 @@ angular
       .when('/about', {
         templateUrl: 'views/about.html'
       })
+
       .when('/people', {
         templateUrl: 'views/people.html',
         controller: 'Main',
         controllerAs: 'main'
       })
+      .when('/people/new', {
+        templateUrl: 'views/people.html',
+        controller: 'NewPersonCtrl',
+        controllerAs: 'main'
+      })
       .when('/people/:id', {
         templateUrl: 'views/person.html',
         controller: 'PersonController',
-        controllerAs: 'person'
+        controllerAs: 'main'
       })
+      .when('/people/:id/edit', {
+        templateUrl: 'views/person.html',
+        controller: 'EditPersonCtrl',
+        controllerAs: 'main'
+      })
+
+      .when('/login', {
+        templateUrl: 'views/login.html',
+        controller: 'LoginCtrl',
+        controllerAs: 'auth'
+      })
+
+      .when('/logiout', {
+        template: 'Logging out...',
+        controller: 'LogoutCtrl',
+      })
+
       .otherwise({
         templateUrl: 'views/404.html'
       });
+  })
+  .run(function ($rootScope, API_URL) {
+    $rootScope.$on('$routeChangeStart', function () {
+        var fb = new Firebase(API_URL);
+        $rootScope.auth = fb.getAuth();
+    });
   })
 
   .filter('objToArr', function () {
@@ -33,8 +64,8 @@ angular
         return Object
         .keys(obj)
         .map(function (key) {
-          obj[key]['_id'] = key; //this is the entire token//
-        return obj[key];
+          obj[key]._id = key; //this is the entire token//
+          return obj[key];
           });
       }
     }
@@ -51,46 +82,145 @@ angular
     }
   })
 
-  .controller('PersonController', function ($http, $routeParams) {
-    var vm = this;
-    var id = $routeParams.id;
+  .controller('LogoutCtrl', function ($rootScope, $scope, $location, API_URL) {
+    var fb = new Firebase(API_URL);
 
-    $http
-      .get('`https://viewangularapp.firebaseio.com/people/${id}.json`)
-      .success(function (data) {
-        vm.data = data;
-      });
+    fb.unauth(function () {
+      $rootScope.auth = null;
+      $location.path('/login');
+      $scope.$apply();
+    });
   })
 
-  .controller('Main', function ($http) {
+  .controller('LoginCtrl', function ($rootScope, $scope, $location, API_URL) {
     var vm = this;
 
-    $http
-      .get('https://viewangularapp.firebaseio.com/people.json')
-      .success(function (data) {
-        vm.people = data;
+    vm.login = function () {
+      var fb = new Firebase(API_URL);
+
+      fb.authWithPassword({
+        email: vm.email,
+        password: vm.password
+      }, function (err, authData) {
+        if (err) {
+          console.log('Error', err)
+        } else {
+          $rootScope.auth = authData;
+          $location.path('/people');
+          $scope.$apply();
+        }
+
       });
 
-    vm.newPerson = {};
-
-    vm.addNewAddress = function () {
-      $http
-        .post('https://viewangularapp.firebaseio.com/people.json', vm.newPerson)
-        .success(function (res) {
-          vm.people[res.name] = vm.newPerson;
-          vm.newPerson = {};
-          $('#modal').modal('hide');
-        });
     };
 
-    vm.removeAddress = function (key) {
-      console.log(key, "yo")
-      $http
-        .delete(`https://viewangularapp.firebaseio.com/people/${key}.json`)
-        .success(function () {
-          delete vm.people[key];
-        })
 
+    vm.register = function () {};
+  })
+
+  .controller('PersonController', function ($routeParams, $location, Person) {
+    var vm = this;
+    vm.id = $routeParams.id;
+
+    Person.getOne(vm.id, function (data) {
+      vm.person = data;
+    });
+
+    vm.destroy = function (id) {
+      Person.destroy(vm.id, function () {
+        $location.path('/people');
+      });
     };
 
+    vm.onModalLoad = function () {};
+  })
+
+  .factory('Person', function ($http, API_URL) {
+    return {
+      getOne(id, cb) {
+        $http
+          .get(`${API_URL}/people/${id}.json`)
+          .success(cb);
+      },
+
+      getAll(cb) {
+        $http
+          .get(`${API_URL}/people.json`)
+          .success(cb);
+      },
+
+      create(data, cb) {
+        $http
+          .post(`${API_URL}/people.json`, data)
+          .success(cb);
+      },
+
+      update(id, data, cb) {
+        $http
+          .put(`${API_URL}/people/${id}.json`, data)
+          .success(cb);
+      },
+
+      destroy(id, cb) {
+        $http
+          .delete(`${API_URL}/people/${id}.json`)
+          .success(cb);
+      }
+    }
+  })
+
+  .controller('NewPersonCtrl', function ($location, $scope, Person) {
+    var vm = this;
+
+    vm.onModalLoad = function () {
+      $('#modal').modal('show');
+
+      $('#modal').on('hidden.bs.modal', function (e) {
+        $location.path('/people');
+        $scope.$apply();
+      });
+    };
+
+    vm.saveAddress = function () {
+      Person.create(vm.person, function () {
+        $('#modal').modal('hide');
+      });
+    };
+
+    Person.getAll(function (people) {
+      vm.people = people;
+    });
+  })
+
+  .controller('EditPersonCtrl', function ($routeParams, $location, Person) {
+    var vm = this;
+    vm.id = $routeParams.id;
+
+    vm.onModalLoad = function () {
+      $('#modal').modal('show');
+
+      $('#modal').on('hidden.bs.modal', function (e) {
+        $location.path(`#/people/${vm.id}`);
+      });
+    };
+
+    vm.saveAddress = function () {
+      Person.update(vm.id, vm.person, function () {
+        $('#modal').modal('hide');
+      });
+    };
+
+    Person.getOne(vm.id, function (person) {
+      vm.person = person;
+    });
+  })
+
+  .controller('Main', function (Person) {
+    var vm = this;
+
+    Person.getAll(function (people) {
+      vm.people = people;
+    });
+
+    vm.onModalLoad = function () {};
   });
