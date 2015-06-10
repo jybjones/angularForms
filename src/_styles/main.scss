@@ -2,7 +2,14 @@ img {
   max-width: 100px;
   max-height: 100px;
 }
+img.landing {
+  max-width: none;
+  max-height: none;
+  width: 800px;
+}
 .person {
   float: left;
   margin: 20px;
 }
+
+

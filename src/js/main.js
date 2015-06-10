@@ -3,7 +3,8 @@ angular
 
   .constant('API_URL', 'https://viewangularapp.firebaseio.com')
 
-   .config(function ($routeProvider) {
+            //routes///////////
+  .config(function ($routeProvider) {
     $routeProvider
       .when('/', {
         templateUrl: 'views/landing.html'
@@ -18,43 +19,66 @@ angular
       .when('/people', {
         templateUrl: 'views/people.html',
         controller: 'Main',
-        controllerAs: 'main'
+        controllerAs: 'main',
+        private: true
       })
       .when('/people/new', {
         templateUrl: 'views/people.html',
         controller: 'NewPersonCtrl',
-        controllerAs: 'main'
+        controllerAs: 'main',
+        private: true
       })
       .when('/people/:id', {
         templateUrl: 'views/person.html',
         controller: 'PersonController',
-        controllerAs: 'main'
+        controllerAs: 'main',
+        private: true
       })
       .when('/people/:id/edit', {
         templateUrl: 'views/person.html',
         controller: 'EditPersonCtrl',
-        controllerAs: 'main'
+        controllerAs: 'main',
+        private: true
       })
 
       .when('/login', {
         templateUrl: 'views/login.html',
         controller: 'LoginCtrl',
-        controllerAs: 'auth'
+        controllerAs: 'auth',
+        resolve: {
+          checkLogin: function ($rootScope, $location) {
+            if ($rootScope.auth) {
+              $location.path('/people')
+            }
+          }
+        }
       })
 
-      .when('/logiout', {
+      .when('/logout', {
         template: 'Logging out...',
         controller: 'LogoutCtrl',
       })
 
       .otherwise({
-        templateUrl: 'views/404.html'
+        templateUrl: 'views/404.html',
       });
   })
-  .run(function ($rootScope, API_URL) {
-    $rootScope.$on('$routeChangeStart', function () {
-        var fb = new Firebase(API_URL);
-        $rootScope.auth = fb.getAuth();
+  // .run(function ($rootScope, $location, API_URL) {
+  //   $rootScope.$on('$routeChangeStart', function (event, nextRoute) {
+  //       var fb = new Firebase(API_URL);
+  //       $rootScope.auth = fb.getAuth();
+
+  //       if(nextRoute.$$route && nextRoute.$$route.private && !$rootScope.auth) {
+  //       $location.path('/login')
+  //       }
+
+  //   });
+  // })
+  .run(function ($rootScope, Auth) {
+    $rootScope.$on('$routeChangeStart', function (event, nextRoute) {
+      if (nextRoute.$$route && nextRoute.$$route.private) {
+        Auth.requireLogin();
+      }
     });
   })
 
@@ -82,41 +106,62 @@ angular
     }
   })
 
-  .controller('LogoutCtrl', function ($rootScope, $scope, $location, API_URL) {
-    var fb = new Firebase(API_URL);
+  // .controller('LogoutCtrl', function ($rootScope, $scope, $location, API_URL) {
+  //   var fb = new Firebase(API_URL);
 
-    fb.unauth(function () {
-      $rootScope.auth = null;
+  //   fb.unauth(function () {
+  //     $rootScope.auth = null;
+  //     $location.path('/login');
+  //     $scope.$apply();
+  //   });
+  // })
+  .controller('LogoutCtrl', function ($scope, $location) {
+    Auth.logout(function () {
       $location.path('/login');
       $scope.$apply();
     });
   })
 
-  .controller('LoginCtrl', function ($rootScope, $scope, $location, API_URL) {
+  // .controller('LoginCtrl', function ($rootScope, $scope, $location, API_URL) {
+  //   var vm = this;
+
+  //   vm.login = function () {
+  //     var fb = new Firebase(API_URL);
+
+  //     fb.authWithPassword({
+  //       email: vm.email,
+  //       password: vm.password
+  //     }, function (err, authData) {
+  //       if (err) {
+  //         console.log('Error', err)
+  //       } else {
+  //         $rootScope.auth = authData;
+  //         $location.path('/people');
+  //         $scope.$apply();
+  //       }
+
+  //     });
+
+  //   };
+  //   vm.register = function () {};
+  // })
+  .controller('LoginCtrl', function ($scope, $location, Auth) {
     var vm = this;
+    var ref = new  Firebase(API_URL);
+    var Auth = firebaseAuth(ref);
 
     vm.login = function () {
-      var fb = new Firebase(API_URL);
-
-      fb.authWithPassword({
-        email: vm.email,
-        password: vm.password
-      }, function (err, authData) {
-        if (err) {
-          console.log('Error', err)
-        } else {
-          $rootScope.auth = authData;
-          $location.path('/people');
-          $scope.$apply();
-        }
-
+      Auth.login(vm.auth.email, vm.auth.password, function (Person) {
+        $location.path('/people');
+        $scope.$apply();
       });
-
     };
 
-
-    vm.register = function () {};
+    vm.register = function () {
+      $location.path('/people');
+    };
   })
+
 
   .controller('PersonController', function ($routeParams, $location, Person) {
     var vm = this;
@@ -135,6 +180,16 @@ angular
     vm.onModalLoad = function () {};
   })
 
+/////////Auth factory?///////
+  .factory('Auth', function () {
+    var current_user = {}
+      return {
+        setUser: function () {},
+        login: function () {},
+        logout: function () {},
+      }
+  })
+///////////////end Auth Factory?//////
   .factory('Person', function ($http, API_URL) {
     return {
       getOne(id, cb) {
@@ -192,7 +247,7 @@ angular
     });
   })
 
-  .controller('EditPersonCtrl', function ($routeParams, $location, Person) {
+  .controller('EditPersonCtrl', function ($scope, $routeParams, $location, Person) {
     var vm = this;
     vm.id = $routeParams.id;
 
@@ -201,6 +256,7 @@ angular
 
       $('#modal').on('hidden.bs.modal', function (e) {
         $location.path(`#/people/${vm.id}`);
+        $scope.$apply();
       });
     };
 
@@ -215,8 +271,12 @@ angular
     });
   })
 
-  .controller('Main', function (Person) {
+  .controller('Main', function ($rootScope, $location, Person, Auth) {
     var vm = this;
+
+    // if (!$rootScope.auth) {
+    //   $location.path('/login');
+    // }
 
     Person.getAll(function (people) {
       vm.people = people;
