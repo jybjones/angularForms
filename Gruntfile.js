@@ -6,14 +6,14 @@ module.exports = function(grunt) {
     return Math.floor(Math.random() * (max - min)) + min;
   }
 
-  var randomPort = getRandomInt(3000,65536)
+  var randomPort = getRandomInt(3000,65536);
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     autoprefixer: {
       main: {
         options: ['>1% in US'],
-        src: 'public/css/main.css'
+        src: 'public/assets/main.css'
       }
     },
     babel: {
@@ -55,7 +55,6 @@ module.exports = function(grunt) {
           base: 'public/',
           open: true,
           livereload: true
-
         }
       }
     },
@@ -117,7 +116,7 @@ module.exports = function(grunt) {
           outputStyle: 'compressed'
         },
         files: {
-          'public/css/main.css': 'src/_styles/main.scss'
+          'public/assets/main.css': 'src/assets/main.scss'
         }
       },
       dev: {
@@ -126,7 +125,7 @@ module.exports = function(grunt) {
           sourceMapEmbed: true
         },
         files: {
-          'public/css/main.css': 'src/_styles/main.scss'
+          'public/assets/main.css': 'src/assets/main.scss'
         }
       }
     },
@@ -154,7 +153,7 @@ module.exports = function(grunt) {
         },
 
         files: [
-          'public/css/main.css',
+          'public/assets/main.css',
           'public/js/**/*.js',
           'public/**/*.html'
         ]
